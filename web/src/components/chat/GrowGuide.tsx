@@ -78,35 +78,44 @@ const GROW_QUESTIONS: Record<GrowStage, { category: string; questions: string[] 
 
 interface GrowGuideProps {
   currentStage: GrowStage
+  onSelectQuestion?: (question: string) => void
 }
 
-export default function GrowGuide({ currentStage }: GrowGuideProps) {
+export default function GrowGuide({ currentStage, onSelectQuestion }: GrowGuideProps) {
   const stages: GrowStage[] = ['goal', 'reality', 'options', 'will']
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-2">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-1.5">
         {stages.map((stage) => (
           <div
             key={stage}
-            className={`p-3 rounded-lg text-center text-sm font-medium border ${
+            className={`p-2 rounded-lg text-center text-xs font-medium border ${
               stage === currentStage
                 ? 'bg-primary text-primary-foreground border-primary'
                 : 'bg-muted text-muted-foreground border-transparent'
             }`}
           >
-            {GROW_STAGE_LABELS[stage]}
+            {GROW_STAGE_LABELS[stage].split(' ')[0]}
           </div>
         ))}
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {GROW_QUESTIONS[currentStage].map(({ category, questions }) => (
           <div key={category}>
-            <h4 className="text-sm font-semibold text-muted-foreground mb-2">{category}</h4>
-            <ul className="space-y-2">
+            <h4 className="text-xs font-semibold text-muted-foreground mb-1.5">{category}</h4>
+            <ul className="space-y-1.5">
               {questions.map((q) => (
-                <li key={q} className="text-sm bg-muted/50 rounded-lg px-4 py-2.5">
+                <li
+                  key={q}
+                  onClick={() => onSelectQuestion?.(q)}
+                  className={`text-xs bg-muted/50 rounded-lg px-3 py-2 leading-snug ${
+                    onSelectQuestion
+                      ? 'cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors'
+                      : ''
+                  }`}
+                >
                   {q}
                 </li>
               ))}
@@ -115,15 +124,19 @@ export default function GrowGuide({ currentStage }: GrowGuideProps) {
         ))}
       </div>
 
-      <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+      <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
         <p className="text-xs text-blue-700 dark:text-blue-300 font-medium mb-1">코칭 팁</p>
-        <p className="text-xs text-blue-600 dark:text-blue-400">
+        <p className="text-xs text-blue-600 dark:text-blue-400 leading-snug">
           {currentStage === 'goal' && '목표는 코치가 정해주지 말고, 질문을 통해 피코치자 스스로 찾게 하세요.'}
           {currentStage === 'reality' && '현실 파악에서는 판단이나 조언 없이 사실과 감정을 탐색하세요.'}
           {currentStage === 'options' && '아이디어를 평가하지 말고 브레인스토밍하듯 모든 가능성을 탐색하세요.'}
           {currentStage === 'will' && '구체적이고 측정 가능한 첫 번째 행동에 집중하세요.'}
         </p>
       </div>
+
+      {onSelectQuestion && (
+        <p className="text-xs text-muted-foreground text-center">질문을 클릭하면 입력창에 삽입됩니다</p>
+      )}
     </div>
   )
 }

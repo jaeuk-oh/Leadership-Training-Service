@@ -60,21 +60,34 @@ async def chat(body: ChatRequest):
     messages = [{"role": "system", "content": system_prompt}]
     for msg in body.history[-10:]:  # 최근 10턴
         messages.append({"role": msg.role, "content": msg.content})
-    messages.append({"role": "user", "content": body.message})
 
-    # 신뢰도 평가 (비동기 병렬)
+    # 세션 시작 인사 트리거: 피코치자가 먼저 대화를 시작
+    if body.message == "__GREETING__":
+        messages.append({
+            "role": "user",
+            "content": "코칭 세션을 시작해주세요. 피코치자로서 자연스럽게 자기소개와 함께 현재 고민이나 상황을 먼저 꺼내주세요.",
+        })
+    else:
+        messages.append({"role": "user", "content": body.message})
+
+    # 신뢰도 평가 (비동기 병렬, 인사 트리거는 평가 제외)
     import asyncio
-    trust_delta_task = asyncio.create_task(
-        _evaluate_trust_delta(body.message, body.grow_stage)
-    )
+    if body.message == "__GREETING__":
+        async def _zero(): return 0.0
+        trust_delta_task = asyncio.create_task(_zero())
+    else:
+        trust_delta_task = asyncio.create_task(
+            _evaluate_trust_delta(body.message, body.grow_stage)
+        )
 
-    # 사용자 메시지 저장
-    sb.table("messages").insert({
-        "session_id": body.session_id,
-        "role": "user",
-        "content": body.message,
-        "grow_stage": body.grow_stage.value,
-    }).execute()
+    # 사용자 메시지 저장 (인사 트리거는 저장 제외)
+    if body.message != "__GREETING__":
+        sb.table("messages").insert({
+            "session_id": body.session_id,
+            "role": "user",
+            "content": body.message,
+            "grow_stage": body.grow_stage.value,
+        }).execute()
 
     async def generate():
         full_response = ""

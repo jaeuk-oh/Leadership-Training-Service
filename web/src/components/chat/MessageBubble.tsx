@@ -6,23 +6,42 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 interface MessageBubbleProps {
   message: Message
+  personaName?: string
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+function getInitials(name: string): string {
+  return name.slice(0, 1)
+}
+
+function getPersonaColor(name: string): string {
+  const colors = [
+    'bg-violet-500', 'bg-blue-500', 'bg-emerald-500',
+    'bg-amber-500', 'bg-rose-500', 'bg-cyan-500',
+  ]
+  let hash = 0
+  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) % colors.length
+  return colors[hash]
+}
+
+export default function MessageBubble({ message, personaName = '상대' }: MessageBubbleProps) {
   const isUser = message.role === 'user'
+  const avatarColor = isUser ? '' : getPersonaColor(personaName)
 
   return (
     <div className={cn('flex gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
       {/* Avatar */}
       <div className={cn(
-        'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-1',
-        isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+        'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-1 text-white',
+        isUser ? 'bg-primary' : avatarColor
       )}>
-        {isUser ? '나' : 'AI'}
+        {isUser ? '나' : getInitials(personaName)}
       </div>
 
       {/* Bubble */}
       <div className={cn('flex flex-col gap-1 max-w-[70%]', isUser ? 'items-end' : 'items-start')}>
+        {!isUser && (
+          <span className="text-xs font-medium text-muted-foreground px-1">{personaName}</span>
+        )}
         <div className={cn(
           'px-4 py-3 rounded-2xl text-sm leading-relaxed',
           isUser
