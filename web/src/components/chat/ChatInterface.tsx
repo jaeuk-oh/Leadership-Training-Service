@@ -338,15 +338,23 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
               </p>
             </div>
           )}
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} personaName={personaName} />
-          ))}
+          {messages
+            .filter((m, i) => !(isTyping && i === messages.length - 1 && m.role === 'assistant' && m.content === ''))
+            .map((message) => (
+              <MessageBubble key={message.id} message={message} personaName={personaName} />
+            ))}
           {isTyping && (
-            <div className="flex gap-3 items-center ml-11">
-              <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex gap-1.5 items-center">
-                <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:0ms]" />
-                <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:150ms]" />
-                <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:300ms]" />
+            <div className="flex gap-3 items-start">
+              <div className={cn('w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 mt-1', personaColor)}>
+                {personaName.slice(0, 1)}
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground px-1">{personaName}</span>
+                <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex gap-1.5 items-center">
+                  <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:0ms]" />
+                  <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:150ms]" />
+                  <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:300ms]" />
+                </div>
               </div>
             </div>
           )}
