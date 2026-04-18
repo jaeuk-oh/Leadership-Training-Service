@@ -1,0 +1,19 @@
+# Python
+api/.leader_venv/
+api/__pycache__/
+api/**/__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Node
+web/node_modules/
+web/.next/
+web/.env.local
+
+# OS
+.DS_Store
+
+# OMC sessions (ephemeral)
+.omc/sessions/
+.omc/state/

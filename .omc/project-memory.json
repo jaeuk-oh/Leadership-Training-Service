@@ -1,0 +1,394 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776525274986,
+  "projectRoot": "/Users/jae6/AI-AGENT/Leadership-Training-Service",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "api": {
+      "path": "api",
+      "purpose": "API routes",
+      "fileCount": 5,
+      "lastAccessed": 1776525274976,
+      "keyFiles": [
+        "Dockerfile",
+        "main.py",
+        "railway.toml",
+        "requirements.txt"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 3,
+      "lastAccessed": 1776525274976,
+      "keyFiles": [
+        "SETUP.md",
+        "supabase_migrations.sql",
+        "troubleshooting.md"
+      ]
+    },
+    "web": {
+      "path": "web",
+      "purpose": null,
+      "fileCount": 13,
+      "lastAccessed": 1776525274977,
+      "keyFiles": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        "components.json",
+        "eslint.config.mjs",
+        "next-env.d.ts"
+      ]
+    },
+    "api/models": {
+      "path": "api/models",
+      "purpose": "Data models",
+      "fileCount": 2,
+      "lastAccessed": 1776525274978,
+      "keyFiles": [
+        "__init__.py",
+        "schemas.py"
+      ]
+    },
+    "api/scripts": {
+      "path": "api/scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 2,
+      "lastAccessed": 1776525274978,
+      "keyFiles": [
+        "__init__.py",
+        "seed_personas.py"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "api/routers/chat.py",
+      "accessCount": 8,
+      "lastAccessed": 1776529333331,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase_migrations.sql",
+      "accessCount": 7,
+      "lastAccessed": 1776528205856,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/persona/page.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1776527199099,
+      "type": "file"
+    },
+    {
+      "path": "web/src/components/layout/AppHeader.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776218988656,
+      "type": "file"
+    },
+    {
+      "path": "api/routers/persona.py",
+      "accessCount": 4,
+      "lastAccessed": 1776526217826,
+      "type": "file"
+    },
+    {
+      "path": "web/src/lib/supabase/client.ts",
+      "accessCount": 4,
+      "lastAccessed": 1776526300463,
+      "type": "file"
+    },
+    {
+      "path": "web/src/components/chat/ChatInterface.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776529319418,
+      "type": "file"
+    },
+    {
+      "path": "api/services/openai_service.py",
+      "accessCount": 3,
+      "lastAccessed": 1776228095449,
+      "type": "file"
+    },
+    {
+      "path": "api/requirements.txt",
+      "accessCount": 3,
+      "lastAccessed": 1776229263395,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(auth)/signup/page.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776230983633,
+      "type": "file"
+    },
+    {
+      "path": "web/src/components/persona/PersonaGrid.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776527756814,
+      "type": "file"
+    },
+    {
+      "path": "api/models/schemas.py",
+      "accessCount": 3,
+      "lastAccessed": 1776527766324,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/session/[sessionId]/page.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776528196853,
+      "type": "file"
+    },
+    {
+      "path": "api/services/grow_engine.py",
+      "accessCount": 3,
+      "lastAccessed": 1776529318584,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/layout.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776189638818,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776189660620,
+      "type": "file"
+    },
+    {
+      "path": "api/main.py",
+      "accessCount": 2,
+      "lastAccessed": 1776228095095,
+      "type": "file"
+    },
+    {
+      "path": "api/routers/evaluation.py",
+      "accessCount": 2,
+      "lastAccessed": 1776228099067,
+      "type": "file"
+    },
+    {
+      "path": "api/services/rag.py",
+      "accessCount": 2,
+      "lastAccessed": 1776228099591,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/results/[sessionId]/page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776228109202,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/dashboard/page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776228115120,
+      "type": "file"
+    },
+    {
+      "path": "web/src/components/evaluation/ResultsView.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776228115165,
+      "type": "file"
+    },
+    {
+      "path": "api/scripts/seed_personas.py",
+      "accessCount": 2,
+      "lastAccessed": 1776525632490,
+      "type": "file"
+    },
+    {
+      "path": "web/src/lib/supabase/server.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776526300516,
+      "type": "file"
+    },
+    {
+      "path": "web/src/proxy.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776527073831,
+      "type": "file"
+    },
+    {
+      "path": "web/src/middleware.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776527289391,
+      "type": "file"
+    },
+    {
+      "path": "web/src/lib/api.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776528397396,
+      "type": "file"
+    },
+    {
+      "path": "web/src/components/chat/GrowGuide.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776529319505,
+      "type": "file"
+    },
+    {
+      "path": "web/src/components/chat/MessageBubble.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776529333279,
+      "type": "file"
+    },
+    {
+      "path": "api/.env.example",
+      "accessCount": 1,
+      "lastAccessed": 1776189218843,
+      "type": "file"
+    },
+    {
+      "path": "web/.env.local.example",
+      "accessCount": 1,
+      "lastAccessed": 1776189220013,
+      "type": "file"
+    },
+    {
+      "path": "api/models/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1776189237001,
+      "type": "file"
+    },
+    {
+      "path": "api/services/supabase_client.py",
+      "accessCount": 1,
+      "lastAccessed": 1776189244626,
+      "type": "file"
+    },
+    {
+      "path": "api/services/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1776189245811,
+      "type": "file"
+    },
+    {
+      "path": "api/routers/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1776189279998,
+      "type": "file"
+    },
+    {
+      "path": "api/routers/stt.py",
+      "accessCount": 1,
+      "lastAccessed": 1776189308835,
+      "type": "file"
+    },
+    {
+      "path": "api/routers/tts.py",
+      "accessCount": 1,
+      "lastAccessed": 1776189310967,
+      "type": "file"
+    },
+    {
+      "path": "api/Dockerfile",
+      "accessCount": 1,
+      "lastAccessed": 1776189342259,
+      "type": "file"
+    },
+    {
+      "path": "web/src/types/index.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776189550036,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(auth)/login/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189570660,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/layout.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189662766,
+      "type": "file"
+    },
+    {
+      "path": "web/src/components/layout/AppSidebar.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189678142,
+      "type": "file"
+    },
+    {
+      "path": "web/src/components/chat/AudioWaveform.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189799760,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/profile/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189846159,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/admin/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189857279,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/results/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189864882,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/feedback/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189875315,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/(app)/session/page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776189883042,
+      "type": "file"
+    },
+    {
+      "path": "web/vercel.json",
+      "accessCount": 1,
+      "lastAccessed": 1776189888956,
+      "type": "file"
+    },
+    {
+      "path": "api/scripts/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1776189898147,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
