@@ -35,9 +35,16 @@ export default function SignupPage() {
 
   const onSubmit = async (data: SignupForm) => {
     setLoading(true)
-    const { error: signUpError, data: authData } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
+      options: {
+        data: {
+          name: data.name,
+          rank: data.rank || null,
+          department: data.department || null,
+        },
+      },
     })
 
     if (signUpError) {
@@ -46,17 +53,9 @@ export default function SignupPage() {
       return
     }
 
-    if (authData.user) {
-      await supabase.from('profiles').update({
-        name: data.name,
-        rank: data.rank || null,
-        department: data.department || null,
-      }).eq('id', authData.user.id)
-    }
-
     setLoading(false)
-    toast.success('회원가입 완료! 이메일을 확인하여 인증을 완료해주세요.')
-    router.push('/login')
+    toast.success('회원가입 완료! GROW 코칭을 시작해보세요.')
+    router.push('/dashboard')
   }
 
   return (

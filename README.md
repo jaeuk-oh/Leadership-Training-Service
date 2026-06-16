@@ -27,7 +27,7 @@ AI가 실제 직장인의 성격·상황·심리를 반영한 가상의 팀원 �
 | **AI / LLM** | OpenAI GPT-4o (대화·평가), GPT-4o-mini (신뢰도 평가), Whisper-1 (STT), TTS-1 (음성 합성) |
 | **Database** | Supabase (PostgreSQL + pgvector) |
 | **RAG** | text-embedding-3-small + pgvector 벡터 유사도 검색 |
-| **Deployment** | Vercel (Frontend), Railway (Backend) |
+| **Deployment** | Vercel (Frontend), Render (Backend) |
 | **CI/CD** | GitHub Actions |
 
 ---
@@ -150,7 +150,7 @@ AI 페르소나와 GROW 4단계 구조의 코칭 대화를 실시합니다. 코�
 | AI 파이프라인 | RAG 구조 설계, GROW Engine 프롬프트 엔지니어링, 신뢰도 평가 알고리즘 |
 | Backend | FastAPI 라우터·서비스 계층 설계, Supabase 스키마 및 벡터 인덱스 설정 |
 | Frontend | Next.js App Router, SSE 스트리밍 클라이언트, 차트 시각화, 채팅 UX |
-| 인프라 | Vercel + Railway 배포 파이프라인, GitHub Actions CI 구성 |
+| 인프라 | Vercel + Render 배포 파이프라인, GitHub Actions CI 구성 |
 
 ---
 

@@ -27,13 +27,20 @@ CREATE POLICY "profiles_admin_all" ON profiles FOR ALL USING (
 );
 
 -- 회원가입 시 profiles 자동 생성 트리거
+-- signUp options.data 로 전달된 메타데이터(name/rank/department)를 함께 채운다.
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id) VALUES (NEW.id);
+  INSERT INTO public.profiles (id, name, rank, department)
+  VALUES (
+    NEW.id,
+    NEW.raw_user_meta_data->>'name',
+    NULLIF(NEW.raw_user_meta_data->>'rank', ''),
+    NULLIF(NEW.raw_user_meta_data->>'department', '')
+  );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created

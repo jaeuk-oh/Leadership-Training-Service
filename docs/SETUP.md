@@ -57,11 +57,12 @@ python -m scripts.seed_personas
 2. vercel.com에서 프로젝트 연결
 3. 환경변수 설정 후 Deploy
 
-### FastAPI → Railway
+### FastAPI → Render
 1. GitHub에 푸시
-2. railway.app에서 새 프로젝트 생성
-3. GitHub 연결 → api 폴더 선택
-4. 환경변수 설정 후 Deploy
+2. render.com에서 New → Web Service 생성
+3. GitHub 연결 → Root Directory를 `api`로 지정 (Dockerfile 자동 인식)
+4. Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. 환경변수 설정 후 Deploy
 
 ## 6. 관리자 설정
 

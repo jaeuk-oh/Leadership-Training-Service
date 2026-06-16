@@ -139,3 +139,47 @@ async for chunk in stream:
 
 ### 이유
 `beta.chat.completions.stream`은 OpenAI SDK의 고수준 헬퍼로 이벤트 타입이 다름. 일반적인 SSE 스트리밍에는 `chat.completions.create(stream=True)`를 사용해야 함.
+
+---
+
+## [2026-06-16] 회원가입 시 profiles에 id만 저장되고 이름·직급·부서 누락
+
+### 오류
+가입은 성공(자동 로그인까지 됨)하는데 `profiles` 행에 `id`만 채워지고 `name`/`rank`/`department`가 NULL. 에러 토스트도 안 뜸(겉보기 정상).
+
+### 원인
+가입 흐름이 2단계로 분리되어 있었음:
+1. `supabase.auth.signUp()` → 트리거가 `profiles`에 `id`만 INSERT
+2. 브라우저가 곧바로 `supabase.from('profiles').update({name, rank, department})` 호출
+
+2번이 문제. 이메일 인증 OFF라 `signUp()`이 세션을 주긴 하지만, **그 직후 update 요청에는 새 세션 토큰이 아직 안 붙는 race**가 발생 → 익명 요청으로 나가 RLS 정책 `auth.uid() = id`에 걸려 0건 처리. 게다가 update의 `error`를 검사하지 않아 실패가 드러나지 않음.
+
+### 해결
+client update를 제거하고, 가입 요청 메타데이터로 정보를 한 번에 전달해 트리거가 채우도록 변경.
+
+```ts
+// signup/page.tsx — update 블록 삭제, signUp에 options.data 추가
+await supabase.auth.signUp({
+  email, password,
+  options: { data: { name, rank, department } },
+})
+```
+```sql
+-- 트리거가 raw_user_meta_data에서 꺼내 한 번에 INSERT
+INSERT INTO public.profiles (id, name, rank, department)
+VALUES (
+  NEW.id,
+  NEW.raw_user_meta_data->>'name',
+  NULLIF(NEW.raw_user_meta_data->>'rank', ''),
+  NULLIF(NEW.raw_user_meta_data->>'department', '')
+);
+```
+
+함수 수정 후 재적용 시 `relation "profiles" does not exist (42P01)`가 재발 → 바뀐 INSERT에 `public.` 스키마 누락 때문. `public.profiles` + `SET search_path = public`으로 재고정 (2026-04-15 항목과 동일 원인).
+
+### 이유
+client에서 가입 직후 DB를 직접 수정하면 세션 토큰 부착 타이밍·RLS에 의존해 불안정. 트리거 함수는 `SECURITY DEFINER`로 RLS를 우회하고 가입과 동일 트랜잭션에서 실행되므로, 메타데이터 경유 + 트리거 INSERT가 race 없이 확실함.
+
+### 후속
+- 이메일 인증 OFF 정책에 맞춰 가입 후 토스트 문구를 인증 안내 → 시작 안내로, 리다이렉트를 `/login` → `/dashboard`로 수정.
+- 배포 백엔드를 Railway → Render로 전환(`railway.toml` 삭제, README/SETUP 갱신). Dockerfile은 공용이라 유지.
