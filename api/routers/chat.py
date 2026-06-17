@@ -1,12 +1,18 @@
 import json
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
 from models.schemas import ChatRequest, GrowStage, SessionStartRequest
 from services.supabase_client import get_supabase
 from services.rag import build_persona_context
 from services.grow_engine import build_system_prompt, TRUST_EVALUATION_PROMPT
+from services.auth import get_current_user
+from services.limits import (
+    MAX_PERSONAS,
+    MAX_SESSIONS_PER_PERSONA,
+    MAX_TURNS_PER_SESSION,
+)
 
 router = APIRouter(tags=["chat"])
 openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -29,7 +35,7 @@ async def _evaluate_trust_delta(coach_message: str, stage: GrowStage) -> float:
 
 
 @router.post("/chat")
-async def chat(body: ChatRequest):
+async def chat(body: ChatRequest, current: dict = Depends(get_current_user)):
     sb = get_supabase()
 
     # 세션 및 페르소나 확인
@@ -42,6 +48,24 @@ async def chat(body: ChatRequest):
         raise HTTPException(status_code=404, detail="Session not found")
 
     session = session_result.data
+
+    # 본인 세션만 접근 가능 (관리자 예외)
+    if not current["is_admin"] and session.get("user_id") != current["user_id"]:
+        raise HTTPException(status_code=403, detail="본인의 세션만 접근할 수 있습니다.")
+
+    # 대화 턴 제한 (인사 트리거는 저장되지 않으므로 카운트 제외)
+    if not current["is_admin"] and body.message != "__GREETING__":
+        turn_result = sb.table("messages")\
+            .select("id", count="exact")\
+            .eq("session_id", body.session_id)\
+            .eq("role", "user")\
+            .execute()
+        if (turn_result.count or 0) >= MAX_TURNS_PER_SESSION:
+            raise HTTPException(
+                status_code=403,
+                detail=f"이 세션의 대화 턴({MAX_TURNS_PER_SESSION}회)을 모두 사용했습니다.",
+            )
+
     persona_name = session["personas"]["name"]
     current_trust = session.get("trust_score", 0.0)
 
@@ -127,9 +151,35 @@ async def chat(body: ChatRequest):
 
 
 @router.post("/session/start")
-async def start_session(body: SessionStartRequest):
-    persona_id, user_id = body.persona_id, body.user_id
+async def start_session(body: SessionStartRequest, current: dict = Depends(get_current_user)):
+    persona_id = body.persona_id
+    user_id = current["user_id"]  # 본문 user_id는 신뢰하지 않고 토큰에서 추출
     sb = get_supabase()
+
+    # 일반 회원 사용 제한 (관리자는 무제한)
+    if not current["is_admin"]:
+        existing = sb.table("coaching_sessions")\
+            .select("persona_id")\
+            .eq("user_id", user_id)\
+            .execute()
+        rows = existing.data or []
+
+        # 페르소나당 세션 수 제한
+        per_persona = sum(1 for r in rows if r["persona_id"] == persona_id)
+        if per_persona >= MAX_SESSIONS_PER_PERSONA:
+            raise HTTPException(
+                status_code=403,
+                detail=f"이 페르소나는 최대 {MAX_SESSIONS_PER_PERSONA}회까지 연습할 수 있습니다.",
+            )
+
+        # 사용 가능한 페르소나 종류 수 제한
+        used_personas = {r["persona_id"] for r in rows}
+        if persona_id not in used_personas and len(used_personas) >= MAX_PERSONAS:
+            raise HTTPException(
+                status_code=403,
+                detail=f"최대 {MAX_PERSONAS}개 페르소나까지 사용할 수 있습니다.",
+            )
+
     result = sb.table("coaching_sessions").insert({
         "user_id": user_id,
         "persona_id": persona_id,
@@ -141,9 +191,20 @@ async def start_session(body: SessionStartRequest):
 
 
 @router.post("/session/{session_id}/end")
-async def end_session(session_id: str):
+async def end_session(session_id: str, current: dict = Depends(get_current_user)):
     sb = get_supabase()
     from datetime import datetime, timezone
+
+    # 본인 세션만 종료 가능 (관리자 예외)
+    if not current["is_admin"]:
+        owner = sb.table("coaching_sessions")\
+            .select("user_id")\
+            .eq("id", session_id)\
+            .single()\
+            .execute()
+        if not owner.data or owner.data.get("user_id") != current["user_id"]:
+            raise HTTPException(status_code=403, detail="본인의 세션만 종료할 수 있습니다.")
+
     result = sb.table("coaching_sessions").update({
         "status": "completed",
         "ended_at": datetime.now(timezone.utc).isoformat(),

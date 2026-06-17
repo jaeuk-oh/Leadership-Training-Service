@@ -49,7 +49,7 @@ export default function PersonaGrid({ personas }: PersonaGridProps) {
       })
       router.push(`/session/${session.id}`)
     } catch (e) {
-      toast.error('세션 시작 실패: ' + String(e))
+      toast.error(e instanceof Error ? e.message : '세션 시작 실패: ' + String(e))
       setStarting(null)
     }
   }

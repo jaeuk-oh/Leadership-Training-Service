@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { CoachingSession, Message, GrowStage } from '@/types'
 import { GROW_STAGE_LABELS } from '@/types'
-import { streamChat, transcribeAudio, synthesizeSpeech } from '@/lib/api'
+import { streamChat, transcribeAudio, synthesizeSpeech, apiPost } from '@/lib/api'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -174,7 +174,7 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
         }
       )
     } catch (e) {
-      toast.error('응답 오류: ' + String(e))
+      toast.error(e instanceof Error ? e.message : '응답 오류: ' + String(e))
       setMessages((prev) => prev.filter((m) => m.id !== assistantMessage.id))
     } finally {
       setIsStreaming(false)
@@ -225,21 +225,15 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
   const endSession = async () => {
     setIsEnding(true)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/session/${session.id}/end`, { method: 'POST' })
-      const evalRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/evaluation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: session.id,
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
-          persona_id: session.persona_id,
-        }),
+      await apiPost(`/api/session/${session.id}/end`, {})
+      await apiPost('/api/evaluation', {
+        session_id: session.id,
+        messages: messages.map((m) => ({ role: m.role, content: m.content })),
+        persona_id: session.persona_id,
       })
-      if (evalRes.ok) {
-        router.push(`/results/${session.id}`)
-      }
+      router.push(`/results/${session.id}`)
     } catch (e) {
-      toast.error('세션 종료 오류: ' + String(e))
+      toast.error('세션 종료 오류: ' + (e instanceof Error ? e.message : String(e)))
       setIsEnding(false)
     }
   }

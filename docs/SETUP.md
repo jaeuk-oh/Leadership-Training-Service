@@ -66,7 +66,21 @@ python -m scripts.seed_personas
 
 ## 6. 관리자 설정
 
-Supabase SQL Editor에서:
+내 계정을 관리자로 지정하면 사용 제한이 모두 해제됩니다. Supabase SQL Editor에서 이메일로 지정:
 ```sql
-UPDATE profiles SET is_admin = true WHERE id = 'your-user-id';
+UPDATE profiles SET is_admin = true
+WHERE id = (SELECT id FROM auth.users WHERE email = '내-이메일@example.com');
 ```
+(user id를 이미 안다면) `UPDATE profiles SET is_admin = true WHERE id = 'your-user-id';`
+
+## 7. 사용 제한 정책 (일반 회원)
+
+백엔드에서 강제하며, 관리자(`is_admin = true`)는 무제한. 수치는 [api/services/limits.py](../api/services/limits.py)에서 조정.
+
+| 항목 | 제한 |
+|------|------|
+| 사용 가능 페르소나 | 서로 다른 3종까지 |
+| 페르소나당 세션 | 2회 |
+| 세션당 대화 턴 | 10회 (코치 발화 기준) |
+
+또한 모든 API는 로그인(Supabase JWT) 필요, 페르소나 생성/임베딩은 관리자 전용.

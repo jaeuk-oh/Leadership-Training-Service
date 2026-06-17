@@ -19,12 +19,18 @@ CREATE TABLE IF NOT EXISTS profiles (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 관리자 여부 판단 함수 (SECURITY DEFINER로 RLS 우회 → profiles 자기참조 재귀 방지)
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public;
+
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "profiles_select_own" ON profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "profiles_update_own" ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "profiles_admin_all" ON profiles FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
-);
+CREATE POLICY "profiles_admin_all" ON profiles FOR ALL USING (public.is_admin());
 
 -- 회원가입 시 profiles 자동 생성 트리거
 -- signUp options.data 로 전달된 메타데이터(name/rank/department)를 함께 채운다.
@@ -65,9 +71,7 @@ ALTER TABLE personas ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "personas_select_all" ON personas FOR SELECT USING (true);
 CREATE POLICY "personas_insert_auth" ON personas FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "personas_update_own" ON personas FOR UPDATE USING (created_by = auth.uid());
-CREATE POLICY "personas_admin_all" ON personas FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
-);
+CREATE POLICY "personas_admin_all" ON personas FOR ALL USING (public.is_admin());
 
 -- ============================================================
 -- 3. persona_documents 테이블 (RAG 임베딩)
@@ -134,9 +138,7 @@ ALTER TABLE coaching_sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "sessions_select_own" ON coaching_sessions FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "sessions_insert_own" ON coaching_sessions FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "sessions_update_own" ON coaching_sessions FOR UPDATE USING (user_id = auth.uid());
-CREATE POLICY "sessions_admin_all" ON coaching_sessions FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
-);
+CREATE POLICY "sessions_admin_all" ON coaching_sessions FOR ALL USING (public.is_admin());
 
 -- ============================================================
 -- 5. messages 테이블
@@ -158,9 +160,7 @@ CREATE POLICY "messages_select_own" ON messages FOR SELECT USING (
 CREATE POLICY "messages_insert_own" ON messages FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM coaching_sessions cs WHERE cs.id = session_id AND cs.user_id = auth.uid())
 );
-CREATE POLICY "messages_admin_all" ON messages FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
-);
+CREATE POLICY "messages_admin_all" ON messages FOR ALL USING (public.is_admin());
 
 -- ============================================================
 -- 6. evaluation_results 테이블
@@ -181,9 +181,7 @@ CREATE TABLE IF NOT EXISTS evaluation_results (
 ALTER TABLE evaluation_results ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "eval_select_own" ON evaluation_results FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "eval_insert_service" ON evaluation_results FOR INSERT WITH CHECK (true);
-CREATE POLICY "eval_admin_all" ON evaluation_results FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
-);
+CREATE POLICY "eval_admin_all" ON evaluation_results FOR ALL USING (public.is_admin());
 
 -- ============================================================
 -- 7. feedback_requests 테이블

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from models.schemas import PersonaCreate, EmbedRequest
 from services.supabase_client import get_supabase
 from services.rag import embed_persona_documents
 from services.openai_service import get_embedding
+from services.auth import get_current_user, require_admin
 
 router = APIRouter(tags=["persona"])
 
@@ -26,14 +27,14 @@ def _build_category_content(profile: dict, category: str, keys: list[str]) -> st
 
 
 @router.get("/personas")
-async def list_personas():
+async def list_personas(current: dict = Depends(get_current_user)):
     sb = get_supabase()
     result = sb.table("personas").select("*").eq("is_preset", True).execute()
     return result.data
 
 
 @router.post("/personas")
-async def create_persona(body: PersonaCreate):
+async def create_persona(body: PersonaCreate, current: dict = Depends(require_admin)):
     sb = get_supabase()
     profile_dict = body.profile.model_dump()
 
@@ -67,13 +68,13 @@ async def create_persona(body: PersonaCreate):
 
 
 @router.post("/persona/embed")
-async def embed_persona(body: EmbedRequest):
+async def embed_persona(body: EmbedRequest, current: dict = Depends(require_admin)):
     count = await embed_persona_documents(body.persona_id)
     return {"embedded": count}
 
 
 @router.get("/personas/{persona_id}")
-async def get_persona(persona_id: str):
+async def get_persona(persona_id: str, current: dict = Depends(get_current_user)):
     sb = get_supabase()
     result = sb.table("personas").select("*").eq("id", persona_id).single().execute()
     if not result.data:

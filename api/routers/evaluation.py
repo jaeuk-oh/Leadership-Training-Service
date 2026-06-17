@@ -1,9 +1,10 @@
 import json
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from openai import AsyncOpenAI
 from models.schemas import EvaluationRequest
 from services.supabase_client import get_supabase
+from services.auth import get_current_user
 
 router = APIRouter(tags=["evaluation"])
 openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -21,7 +22,7 @@ JSON 형식으로만 응답하세요:
 
 
 @router.post("/evaluation")
-async def evaluate_session(body: EvaluationRequest):
+async def evaluate_session(body: EvaluationRequest, current: dict = Depends(get_current_user)):
     sb = get_supabase()
 
     conversation_text = "\n".join([
@@ -68,7 +69,7 @@ async def evaluate_session(body: EvaluationRequest):
 
 
 @router.get("/evaluation/{session_id}")
-async def get_evaluation(session_id: str):
+async def get_evaluation(session_id: str, current: dict = Depends(get_current_user)):
     sb = get_supabase()
     result = sb.table("evaluation_results")\
         .select("*")\
@@ -81,7 +82,7 @@ async def get_evaluation(session_id: str):
 
 
 @router.get("/ranking")
-async def get_ranking(limit: int = 10):
+async def get_ranking(limit: int = 10, current: dict = Depends(get_current_user)):
     sb = get_supabase()
     result = sb.table("evaluation_results")\
         .select("*, profiles(name, rank, department)")\

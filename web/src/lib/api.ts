@@ -1,15 +1,30 @@
+import { createClient } from '@/lib/supabase/client'
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+// 현재 로그인 세션의 access token을 Authorization 헤더로 반환
+async function authHeader(): Promise<Record<string, string>> {
+  const supabase = createClient()
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`)
-  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: { ...(await authHeader()) },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || `API error: ${res.status}`)
+  }
   return res.json()
 }
 
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
     body: JSON.stringify(body),
   })
   if (!res.ok) {
@@ -33,11 +48,14 @@ export async function streamChat(
 ) {
   const res = await fetch(`${API_URL}/api/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
     body: JSON.stringify(body),
   })
 
-  if (!res.ok) throw new Error(`Chat error: ${res.status}`)
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || `Chat error: ${res.status}`)
+  }
   if (!res.body) throw new Error('No response body')
 
   const reader = res.body.getReader()
@@ -65,8 +83,15 @@ export async function streamChat(
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
   const formData = new FormData()
   formData.append('audio', audioBlob, 'audio.webm')
-  const res = await fetch(`${API_URL}/api/stt`, { method: 'POST', body: formData })
-  if (!res.ok) throw new Error('STT failed')
+  const res = await fetch(`${API_URL}/api/stt`, {
+    method: 'POST',
+    headers: { ...(await authHeader()) },
+    body: formData,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || 'STT failed')
+  }
   const data = await res.json()
   return data.text
 }
@@ -74,7 +99,7 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
 export async function synthesizeSpeech(text: string, voice = 'alloy'): Promise<ArrayBuffer> {
   const res = await fetch(`${API_URL}/api/tts`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
     body: JSON.stringify({ text, voice }),
   })
   if (!res.ok) throw new Error('TTS failed')

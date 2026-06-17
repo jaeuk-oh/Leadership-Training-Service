@@ -183,3 +183,39 @@ client에서 가입 직후 DB를 직접 수정하면 세션 토큰 부착 타이
 ### 후속
 - 이메일 인증 OFF 정책에 맞춰 가입 후 토스트 문구를 인증 안내 → 시작 안내로, 리다이렉트를 `/login` → `/dashboard`로 수정.
 - 배포 백엔드를 Railway → Render로 전환(`railway.toml` 삭제, README/SETUP 갱신). Dockerfile은 공용이라 유지.
+
+---
+
+## [2026-06-17] 관리자로 지정했는데 사이드바에 관리자 메뉴가 안 뜸
+
+### 오류
+`profiles.is_admin = true`로 지정 + 재로그인/캐시삭제까지 했는데도 관리자 메뉴 미표시.
+RLS를 흉내 낸 진단 쿼리(`SET LOCAL role authenticated` + jwt.claims)에서:
+```
+ERROR: 42P17: infinite recursion detected in policy for relation "profiles"
+```
+
+### 원인
+`profiles_admin_all` 정책이 profiles 테이블에 걸려 있으면서, 조건 안에서 다시 profiles를 조회해 무한 재귀.
+```sql
+CREATE POLICY "profiles_admin_all" ON profiles FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true)
+);
+```
+layout.tsx의 profiles 조회가 이 재귀로 실패 → `profile`이 null → `is_admin ?? false` → 관리자 메뉴 미표시.
+같은 패턴이 personas/sessions/messages/eval의 `*_admin_all` 정책에도 존재(admin이 해당 테이블 접근 시 동일 재귀).
+
+### 해결
+관리자 판단을 `SECURITY DEFINER` 함수로 분리해 RLS를 우회시킴(2026-04-19 personas 건과 동일 해법).
+```sql
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public;
+```
+이후 5개 `*_admin_all` 정책을 `FOR ALL USING (public.is_admin())`으로 교체.
+
+### 이유
+RLS는 테이블 소유자에게 적용되지 않고, `SECURITY DEFINER` 함수는 소유자 권한으로 실행된다. 따라서 함수 내부의 profiles 조회는 RLS를 다시 타지 않아 재귀 고리가 끊긴다. 정책이 직접 profiles를 조회하면 그 조회가 또 정책 평가를 유발해 무한 재귀가 발생함.
