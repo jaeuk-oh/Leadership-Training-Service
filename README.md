@@ -26,9 +26,9 @@ AI가 실제 직장인의 성격·상황·심리를 반영한 가상의 팀원 �
 | **Backend** | FastAPI (Python), Uvicorn |
 | **AI / LLM** | OpenAI GPT-4o (대화·평가), GPT-4o-mini (신뢰도 평가), Whisper-1 (STT), TTS-1 (음성 합성) |
 | **Database** | Supabase (PostgreSQL + pgvector) |
+| **인증** | Supabase Auth (이메일/비밀번호 + Google OAuth), JWT 기반 API 보호 |
 | **RAG** | text-embedding-3-small + pgvector 벡터 유사도 검색 |
 | **Deployment** | Vercel (Frontend), Render (Backend) |
-| **CI/CD** | GitHub Actions |
 
 ---
 
@@ -75,6 +75,7 @@ AI 페르소나와 GROW 4단계 구조의 코칭 대화를 실시합니다. 코�
 - 세션 시작 시 AI 페르소나가 먼저 자기소개와 현재 고민을 제시해 자연스러운 대화 진입
 - 단계 전환 버튼(G → R → O → W)으로 세션 흐름 직접 제어
 - 신뢰도가 낮으면 AI가 방어적·폐쇄적으로, 높으면 개방적으로 반응
+- 코치(사용자)의 이름·직급·부서를 시스템 프롬프트에 주입 → AI 피코치자가 코치를 **상사**로 인식하고 관계에 맞게 반응
 
 **신뢰도 평가 기준 (GPT-4o-mini, -2.0 ~ +2.0/턴)**
 
@@ -120,7 +121,14 @@ AI 페르소나와 GROW 4단계 구조의 코칭 대화를 실시합니다. 코�
 - 세션 이력, 평균 신뢰도, 최고 점수를 한눈에 확인하는 개인 대시보드
 
 ### 7. 커스텀 페르소나 생성
-관리자 또는 사용자가 성별·나이·직군·MBTI·스트레스 수준 등 세부 속성을 입력해 나만의 페르소나를 생성하고 즉시 임베딩할 수 있습니다.
+관리자가 성별·나이·직군·MBTI·스트레스 수준 등 세부 속성을 입력해 페르소나를 생성하고 즉시 임베딩할 수 있습니다.
+
+### 8. 인증 & 사용 제한
+- **로그인**: 이메일/비밀번호 + **Google OAuth** 지원
+- **온보딩**: 직급·부서 미입력(특히 소셜 로그인) 시 프로필 완성 단계로 유도
+- **API 보호**: 모든 백엔드 엔드포인트가 Supabase JWT 인증 필요, 요청 본문이 아닌 토큰에서 사용자 식별
+- **사용 제한**(일반 회원, 관리자는 무제한): 페르소나 3종 / 페르소나당 세션 2회 / 세션당 코치 발화 10턴
+- 페르소나 생성·임베딩은 관리자 전용
 
 ---
 
@@ -129,7 +137,7 @@ AI 페르소나와 GROW 4단계 구조의 코칭 대화를 실시합니다. 코�
 | Phase | 기능 | 상태 |
 |-------|------|------|
 | 1 | 프로젝트 초기 설정 | ✅ 완료 |
-| 2 | 인증 시스템 (Supabase Auth) | ✅ 완료 |
+| 2 | 인증 시스템 (Supabase Auth + Google OAuth, JWT API 보호, 사용 제한) | ✅ 완료 |
 | 3 | RAG 기반 페르소나 시스템 | ✅ 완료 |
 | 4 | GROW 코칭 시뮬레이션 | ✅ 완료 |
 | 5 | 음성 기능 (STT/TTS) | ✅ 완료 |
@@ -150,7 +158,7 @@ AI 페르소나와 GROW 4단계 구조의 코칭 대화를 실시합니다. 코�
 | AI 파이프라인 | RAG 구조 설계, GROW Engine 프롬프트 엔지니어링, 신뢰도 평가 알고리즘 |
 | Backend | FastAPI 라우터·서비스 계층 설계, Supabase 스키마 및 벡터 인덱스 설정 |
 | Frontend | Next.js App Router, SSE 스트리밍 클라이언트, 차트 시각화, 채팅 UX |
-| 인프라 | Vercel + Render 배포 파이프라인, GitHub Actions CI 구성 |
+| 인프라 | Vercel + Render 배포, Supabase Auth/Google OAuth 연동 |
 
 ---
 
@@ -181,6 +189,7 @@ AI 페르소나와 GROW 4단계 구조의 코칭 대화를 실시합니다. 코�
 # Frontend
 cd web && npm install && npm run dev
 
-# Backend
-cd api && pip install -r requirements.txt && uvicorn main:app --reload
+# Backend (가상환경 활성화 후 실행)
+cd api && source .leader_venv/bin/activate && uvicorn main:app --reload
+# 최초 1회: python -m venv .leader_venv && pip install -r requirements.txt
 ```
