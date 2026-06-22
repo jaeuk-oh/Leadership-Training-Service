@@ -32,7 +32,7 @@ export default function LandingPage() {
           <span className="text-blue-400">GROW 코칭 시뮬레이터</span>
         </h1>
         <p className="text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
-          30가지 실제 직장인 페르소나와 1:1 코칭을 실습하세요.
+          30가지 실제 직장인 페르소나와 1:1 코칭을 실습하세요.<br />
           AI가 상황, 감정, 저항까지 실감나게 재현합니다.
         </p>
         <div className="flex gap-4">
