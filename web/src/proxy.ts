@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const publicPaths = ['/', '/login', '/signup']
-  const isPublicPath = publicPaths.includes(pathname)
+  const isPublicPath = publicPaths.includes(pathname) || pathname.startsWith('/auth/')
 
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone()

@@ -15,6 +15,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .eq('id', user.id)
     .single()
 
+  // 프로필 미완성(직급/부서 없음) 시 온보딩으로 — 구글 로그인은 직급/부서를 받지 않으므로
+  if (!profile?.rank || !profile?.department) {
+    redirect('/onboarding')
+  }
+
   return (
     <div className="flex h-screen bg-background">
       <AppSidebar isAdmin={profile?.is_admin ?? false} />

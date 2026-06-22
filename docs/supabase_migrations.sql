@@ -40,7 +40,11 @@ BEGIN
   INSERT INTO public.profiles (id, name, rank, department)
   VALUES (
     NEW.id,
-    NEW.raw_user_meta_data->>'name',
+    -- 이메일가입: 'name', 구글 OAuth: 'full_name'/'name'
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data->>'name', ''),
+      NULLIF(NEW.raw_user_meta_data->>'full_name', '')
+    ),
     NULLIF(NEW.raw_user_meta_data->>'rank', ''),
     NULLIF(NEW.raw_user_meta_data->>'department', '')
   );

@@ -69,6 +69,14 @@ async def chat(body: ChatRequest, current: dict = Depends(get_current_user)):
     persona_name = session["personas"]["name"]
     current_trust = session.get("trust_score", 0.0)
 
+    # 코치(사용자) 프로필 — 피코치자가 상사로 인지하도록 주입
+    coach_profile = sb.table("profiles")\
+        .select("name, rank, department")\
+        .eq("id", current["user_id"])\
+        .single()\
+        .execute()
+    coach_info = coach_profile.data or None
+
     # RAG 컨텍스트 검색
     rag_context = await build_persona_context(body.message, body.persona_id)
 
@@ -78,6 +86,7 @@ async def chat(body: ChatRequest, current: dict = Depends(get_current_user)):
         rag_context=rag_context,
         grow_stage=body.grow_stage,
         trust_score=current_trust,
+        coach_info=coach_info,
     )
 
     # 메시지 히스토리 구성

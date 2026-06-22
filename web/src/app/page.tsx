@@ -42,7 +42,7 @@ export default function LandingPage() {
             </Button>
           </Link>
           <Link href="/login">
-            <Button size="lg" variant="outline" className="text-lg px-8 h-12 border-white/20 text-white hover:bg-white/10">
+            <Button size="lg" variant="outline" className="text-lg px-8 h-12 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white">
               로그인
             </Button>
           </Link>

@@ -56,6 +56,7 @@ def build_system_prompt(
     grow_stage: GrowStage,
     trust_score: float,
     conversation_summary: str = "",
+    coach_info: dict | None = None,
 ) -> str:
     trust_description = _trust_to_description(trust_score)
 
@@ -63,6 +64,7 @@ def build_system_prompt(
 이름: {persona_name}
 현재 신뢰도: {trust_score:.1f}/10 ({trust_description})
 
+{_build_coach_context(coach_info)}
 {rag_context}
 
 {GROW_STAGE_PROMPTS[grow_stage]}
@@ -79,6 +81,20 @@ def build_system_prompt(
         prompt += f"\n## 이전 대화 요약\n{conversation_summary}\n"
 
     return prompt
+
+
+def _build_coach_context(coach_info: dict | None) -> str:
+    """코치(사용자) 정보를 피코치자가 인지하도록 프롬프트 섹션 구성."""
+    if not coach_info:
+        return ""
+    name = coach_info.get("name") or "리더"
+    parts = [p for p in (coach_info.get("department"), coach_info.get("rank")) if p]
+    title = " ".join(parts)
+    who = f"{name} ({title})" if title else name
+    return f"""## 코치(상담자) 정보
+당신을 코칭하는 사람은 같은 회사의 상사인 리더입니다: {who}
+이 사람이 당신의 상사라는 점을 인지하고, 상사-팀원 관계에 맞는 태도와 말투로 반응하세요.
+"""
 
 
 def _trust_to_description(trust: float) -> str:
