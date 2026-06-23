@@ -7,42 +7,42 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white">
       {/* Header */}
-      <header className="flex items-center justify-between px-8 py-5 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center font-bold text-sm">G</div>
-          <span className="font-semibold text-lg">GROW 코칭 시뮬레이터</span>
+      <header className="flex items-center justify-between gap-2 px-4 sm:px-8 py-4 sm:py-5 border-b border-white/10">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 shrink-0 rounded-lg bg-blue-500 flex items-center justify-center font-bold text-sm">G</div>
+          <span className="font-semibold text-base sm:text-lg truncate">GROW 코칭 시뮬레이터</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link href="/login">
-            <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">로그인</Button>
+            <Button variant="ghost" size="sm" className="text-white hover:text-white hover:bg-white/10">로그인</Button>
           </Link>
           <Link href="/signup">
-            <Button className="bg-blue-500 hover:bg-blue-600">무료 시작</Button>
+            <Button size="sm" className="bg-blue-500 hover:bg-blue-600">무료 시작</Button>
           </Link>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="flex flex-col items-center text-center px-8 pt-24 pb-20 max-w-4xl mx-auto">
+      <section className="flex flex-col items-center text-center px-6 sm:px-8 pt-16 sm:pt-24 pb-16 sm:pb-20 max-w-4xl mx-auto">
         <Badge className="mb-6 bg-blue-500/20 text-blue-300 border-blue-500/30 hover:bg-blue-500/20">
           RAG 기반 AI 페르소나 시스템
         </Badge>
-        <h1 className="text-5xl font-bold leading-tight mb-6">
-          실전처럼 훈련하는<br />
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-6">
+          실전처럼 훈련하는<br className="hidden sm:inline" />{' '}
           <span className="text-blue-400">GROW 코칭 시뮬레이터</span>
         </h1>
-        <p className="text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
-          30가지 실제 직장인 페르소나와 1:1 코칭을 실습하세요.<br />
+        <p className="text-base sm:text-lg md:text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
+          30가지 실제 직장인 페르소나와 1:1 코칭을 실습하세요.<br className="hidden sm:inline" />{' '}
           AI가 상황, 감정, 저항까지 실감나게 재현합니다.
         </p>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
           <Link href="/signup">
-            <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-lg px-8 h-12">
+            <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-base sm:text-lg px-6 sm:px-8 h-12">
               지금 시작하기
             </Button>
           </Link>
           <Link href="/login">
-            <Button size="lg" variant="outline" className="text-lg px-8 h-12 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white">
+            <Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 h-12 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white">
               로그인
             </Button>
           </Link>
@@ -50,7 +50,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="px-8 pb-24 max-w-5xl mx-auto">
+      <section className="px-6 sm:px-8 pb-20 sm:pb-24 max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
