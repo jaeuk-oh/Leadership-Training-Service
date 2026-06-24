@@ -9,8 +9,9 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { toast } from 'sonner'
-import { Send, Mic, MicOff, Volume2, VolumeX, CheckCircle, Loader2, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Send, Mic, MicOff, Volume2, VolumeX, CheckCircle, Loader2, ChevronRight, ChevronLeft, BookOpen } from 'lucide-react'
 import GrowGuide from './GrowGuide'
 import MessageBubble from './MessageBubble'
 import AudioWaveform from './AudioWaveform'
@@ -44,6 +45,7 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
   const [ttsEnabled, setTtsEnabled] = useState(false)
   const [isEnding, setIsEnding] = useState(false)
   const [guideOpen, setGuideOpen] = useState(true)
+  const [guideSheetOpen, setGuideSheetOpen] = useState(false)
   const [isGreeting, setIsGreeting] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -242,16 +244,16 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
   const isTyping = (isStreaming || isGreeting) && messages[messages.length - 1]?.content === ''
 
   return (
-    <div className="flex flex-col h-full -m-6">
+    <div className="flex flex-col h-full -m-4 sm:-m-6">
       {/* Top bar */}
-      <div className="border-b px-6 py-3 flex items-center justify-between bg-background shrink-0">
+      <div className="border-b px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2 bg-background shrink-0">
         {/* Persona info */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <div className={cn('w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0', personaColor)}>
             {personaName.slice(0, 1)}
           </div>
-          <div>
-            <p className="font-semibold text-sm">{personaName}</p>
+          <div className="min-w-0">
+            <p className="font-semibold text-sm truncate">{personaName}</p>
             <p className="text-xs text-muted-foreground">
               {isTyping
                 ? <span className="flex items-center gap-1 text-primary"><span className="animate-pulse">●</span> 입력 중...</span>
@@ -261,13 +263,13 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
           </div>
         </div>
 
-        {/* GROW Stage */}
-        <div className="flex items-center gap-1">
+        {/* GROW Stage — 모바일에선 전체 폭 별도 행에서 가로 스크롤 */}
+        <div className="order-last w-full sm:order-none sm:w-auto flex items-center gap-1 overflow-x-auto">
           {stages.map((stage) => (
             <button
               key={stage}
               onClick={() => setGrowStage(stage)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 growStage === stage
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-accent'
@@ -278,11 +280,11 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Trust score */}
-          <div className="flex items-center gap-2 min-w-32">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Trust score — 모바일에선 숫자만, 데스크톱은 진행바까지 */}
+          <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground whitespace-nowrap">신뢰도 {trustScore.toFixed(1)}</span>
-            <Progress value={(trustScore / 10) * 100} className="h-2 w-20" />
+            <Progress value={(trustScore / 10) * 100} className="hidden sm:block h-2 w-20" />
           </div>
 
           {/* TTS toggle */}
@@ -295,16 +297,32 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
             {ttsEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </Button>
 
-          {/* Guide toggle */}
+          {/* Guide toggle — 데스크톱: 인라인 패널 토글 */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => setGuideOpen(!guideOpen)}
-            className={cn('gap-1.5', guideOpen && 'bg-muted')}
+            className={cn('hidden md:inline-flex gap-1.5', guideOpen && 'bg-muted')}
           >
             {guideOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             가이드
           </Button>
+
+          {/* Guide — 모바일: 드로어 오버레이 */}
+          <Sheet open={guideSheetOpen} onOpenChange={setGuideSheetOpen}>
+            <SheetTrigger
+              render={<Button variant="outline" size="sm" className="md:hidden" aria-label="GROW 가이드" />}
+            >
+              <BookOpen className="w-4 h-4" />
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 max-w-[85vw] overflow-y-auto px-4 py-4">
+              <SheetTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">GROW 가이드</SheetTitle>
+              <GrowGuide
+                currentStage={growStage}
+                onSelectQuestion={(q) => { setInput(q); setGuideSheetOpen(false) }}
+              />
+            </SheetContent>
+          </Sheet>
 
           {/* End session */}
           <Button
@@ -315,7 +333,7 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
             className="gap-1.5 bg-green-600 hover:bg-green-700"
           >
             {isEnding ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-            세션 종료
+            <span className="hidden sm:inline">세션 종료</span>
           </Button>
         </div>
       </div>
@@ -323,7 +341,7 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
       {/* Body: messages + guide panel */}
       <div className="flex flex-1 overflow-hidden">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4 space-y-4">
           {messages.length === 0 && !isGreeting && (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
               <p className="text-lg font-medium mb-2">코칭 세션을 시작하세요</p>
@@ -355,9 +373,9 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Guide side panel */}
+        {/* Guide side panel — 데스크톱 전용 (모바일은 상단 드로어 사용) */}
         {guideOpen && (
-          <div className="w-64 border-l bg-background/50 overflow-y-auto px-4 py-4 shrink-0">
+          <div className="hidden md:block w-64 border-l bg-background/50 overflow-y-auto px-4 py-4 shrink-0">
             <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">GROW 가이드</p>
             <GrowGuide
               currentStage={growStage}
@@ -368,15 +386,15 @@ export default function ChatInterface({ session, initialMessages }: ChatInterfac
       </div>
 
       {/* Input area */}
-      <div className="border-t px-6 py-4 bg-background shrink-0">
+      <div className="border-t px-3 sm:px-6 py-3 sm:py-4 bg-background shrink-0">
         {isRecording && <AudioWaveform />}
-        <div className="flex gap-3 items-end">
+        <div className="flex gap-2 sm:gap-3 items-end">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="코칭 질문을 입력하세요... (Shift+Enter 줄바꿈)"
-            className="flex-1 min-h-[80px] max-h-40 resize-none"
+            className="flex-1 min-h-[60px] sm:min-h-[80px] max-h-40 resize-none"
             disabled={isStreaming || isGreeting}
           />
           <div className="flex flex-col gap-2">
