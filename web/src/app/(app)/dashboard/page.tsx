@@ -70,13 +70,13 @@ export default async function DashboardPage() {
 
       {/* Start new session CTA */}
       <Card className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0">
-        <CardContent className="pt-6 pb-6 flex items-center justify-between">
+        <CardContent className="pt-6 pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold">새 코칭 세션 시작</h2>
+            <h2 className="text-lg sm:text-xl font-bold">새 코칭 세션 시작</h2>
             <p className="text-blue-100 mt-1 text-sm">페르소나를 선택하고 GROW 코칭을 실습해보세요.</p>
           </div>
-          <Link href="/persona">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+          <Link href="/persona" className="shrink-0">
+            <Button size="lg" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
               시작하기
             </Button>
           </Link>
@@ -93,17 +93,17 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="space-y-3">
               {sessions.map((s) => (
-                <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-accent/50">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="text-sm font-medium">{(s.personas as { name: string } | null)?.name ?? '페르소나'}</p>
+                <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg bg-accent/50">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{(s.personas as { name: string } | null)?.name ?? '페르소나'}</p>
                       <p className="text-xs text-muted-foreground">
                         {GROW_STAGE_LABELS[s.current_stage as keyof typeof GROW_STAGE_LABELS]} ·{' '}
                         신뢰도 {s.trust_score?.toFixed(1) ?? 0}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <Badge variant={s.status === 'completed' ? 'default' : 'secondary'}>
                       {s.status === 'completed' ? '완료' : s.status === 'active' ? '진행중' : '중단'}
                     </Badge>
