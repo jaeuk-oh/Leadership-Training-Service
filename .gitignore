@@ -17,3 +17,6 @@ web/.env.local
 # OMC sessions (ephemeral)
 .omc/sessions/
 .omc/state/
+
+# 포트폴리오 분석 산출물 (공개 저장소에 올리지 않는다)
+.ai-profile/

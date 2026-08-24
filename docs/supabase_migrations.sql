@@ -73,7 +73,11 @@ CREATE TABLE IF NOT EXISTS personas (
 
 ALTER TABLE personas ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "personas_select_all" ON personas FOR SELECT USING (true);
-CREATE POLICY "personas_insert_auth" ON personas FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+-- 페르소나 생성은 관리자만. API(POST /personas)는 require_admin 으로 막혀 있지만,
+-- 프론트가 anon key 로 Supabase 에 직접 insert 하면 API 를 우회한다.
+-- auth.uid() IS NOT NULL 로 두면 "로그인한 누구나 생성 가능"이 되어 API 권한과 어긋난다.
+-- (백엔드는 service_role 키를 쓰므로 RLS 를 통과한다 — 시드 스크립트도 영향 없음)
+CREATE POLICY "personas_insert_admin" ON personas FOR INSERT WITH CHECK (public.is_admin());
 CREATE POLICY "personas_update_own" ON personas FOR UPDATE USING (created_by = auth.uid());
 CREATE POLICY "personas_admin_all" ON personas FOR ALL USING (public.is_admin());
 
@@ -233,6 +237,19 @@ DROP TRIGGER IF EXISTS on_feedback_response ON feedback_responses;
 CREATE TRIGGER on_feedback_response
   AFTER INSERT ON feedback_responses
   FOR EACH ROW EXECUTE FUNCTION award_feedback_points();
+
+-- ============================================================
+-- 기존 DB 패치 (이미 마이그레이션을 적용한 프로젝트에서만 실행)
+--
+-- 아래는 위 정의와 같은 결과를 만드는 멱등 패치다. 이 파일 전체를 재실행하면
+-- 기존 CREATE POLICY 들이 중복 오류를 내므로(과거에 트리거가 이 방식으로 조용히
+-- 누락된 적이 있다 — docs/troubleshooting.md 2026-04-15), 운영 DB에는 이 블록만 실행한다.
+-- ============================================================
+
+-- personas: 로그인만 하면 생성 가능 → 관리자만 생성 가능
+DROP POLICY IF EXISTS "personas_insert_auth" ON personas;
+DROP POLICY IF EXISTS "personas_insert_admin" ON personas;
+CREATE POLICY "personas_insert_admin" ON personas FOR INSERT WITH CHECK (public.is_admin());
 
 -- ============================================================
 -- 완료

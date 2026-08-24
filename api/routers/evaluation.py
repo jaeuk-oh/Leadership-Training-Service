@@ -78,6 +78,13 @@ async def get_evaluation(session_id: str, current: dict = Depends(get_current_us
         .execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="Evaluation not found")
+
+    # 로그인만으로 남의 평가 결과를 열 수 있으면 안 된다. /chat, /session/{id}/end 와 같은 기준으로 막는다.
+    # owner 가 비어 있으면(과거 데이터 등) 소유자를 확인할 수 없다는 뜻이므로 열어주지 않는다(fail-closed).
+    owner = result.data.get("user_id")
+    if not current["is_admin"] and owner != current["user_id"]:
+        raise HTTPException(status_code=403, detail="본인의 평가 결과만 조회할 수 있습니다.")
+
     return result.data
 
 
